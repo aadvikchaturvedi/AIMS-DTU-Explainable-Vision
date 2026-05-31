@@ -1,0 +1,37 @@
+{
+  "model": "DeiT-base (deit_base_patch16_224)",
+  "checkpoint": "deit_best.pth",
+  "evaluated_at": "2026-05-31 11:39:49",
+  "test_samples": 435,
+  "overall_accuracy": 0.9678,
+  "per_class": {
+    "COVID": {
+      "precision": 0.9474,
+      "recall": 0.9931,
+      "f1_score": 0.9697,
+      "support": 145
+    },
+    "Normal": {
+      "precision": 0.9781,
+      "recall": 0.9241,
+      "f1_score": 0.9504,
+      "support": 145
+    },
+    "Viral Pneumonia": {
+      "precision": 0.9795,
+      "recall": 0.9862,
+      "f1_score": 0.9828,
+      "support": 145
+    }
+  },
+  "macro_avg": {
+    "precision": 0.9683,
+    "recall": 0.9678,
+    "f1_score": 0.9676
+  },
+  "weighted_avg": {
+    "precision": 0.9683,
+    "recall": 0.9678,
+    "f1_score": 0.9676
+  }
+}

@@ -1,0 +1,5 @@
+sample_index,image_path,true_class,predicted_class,confidence,correct,rollout_map_mean,rollout_map_max,gradcam_map_mean,gradcam_map_max
+338,COVID_19_dataset/test/Viral Pneumonia/Viral Pneumonia-261.png,Viral Pneumonia,Viral Pneumonia,0.9998,True,0.0244,1.0,0.518,1.0
+359,COVID_19_dataset/test/Viral Pneumonia/Viral Pneumonia-494.png,Viral Pneumonia,Viral Pneumonia,1.0,True,0.0219,1.0,0.5209,1.0
+51,COVID_19_dataset/test/COVID/COVID-2160.png,COVID,Normal,0.9253,False,0.0761,1.0,0.3399,1.0
+36,COVID_19_dataset/test/COVID/COVID-1870.png,COVID,COVID,0.9998,True,0.0756,1.0,0.4346,1.0

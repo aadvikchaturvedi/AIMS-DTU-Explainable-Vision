@@ -1,0 +1,68 @@
+{
+  "model": "deit_base_patch16_224",
+  "checkpoint": "deit_best.pth",
+  "generated": "2026-05-31 13:13:29",
+  "samples_per_class": 2,
+  "total_samples": 4,
+  "correct_predictions": 3,
+  "method_summary": {
+    "attention_rollout": {
+      "avg_mean_activation": 0.0495,
+      "avg_max_activation": 1.0
+    },
+    "gradcam": {
+      "avg_mean_activation": 0.4534,
+      "avg_max_activation": 1.0
+    }
+  },
+  "per_image_results": [
+    {
+      "sample_index": 338,
+      "image_path": "COVID_19_dataset/test/Viral Pneumonia/Viral Pneumonia-261.png",
+      "true_class": "Viral Pneumonia",
+      "predicted_class": "Viral Pneumonia",
+      "confidence": 0.9998,
+      "correct": true,
+      "rollout_map_mean": 0.0244,
+      "rollout_map_max": 1.0,
+      "gradcam_map_mean": 0.518,
+      "gradcam_map_max": 1.0
+    },
+    {
+      "sample_index": 359,
+      "image_path": "COVID_19_dataset/test/Viral Pneumonia/Viral Pneumonia-494.png",
+      "true_class": "Viral Pneumonia",
+      "predicted_class": "Viral Pneumonia",
+      "confidence": 1.0,
+      "correct": true,
+      "rollout_map_mean": 0.0219,
+      "rollout_map_max": 1.0,
+      "gradcam_map_mean": 0.5209,
+      "gradcam_map_max": 1.0
+    },
+    {
+      "sample_index": 51,
+      "image_path": "COVID_19_dataset/test/COVID/COVID-2160.png",
+      "true_class": "COVID",
+      "predicted_class": "Normal",
+      "confidence": 0.9253,
+      "correct": false,
+      "rollout_map_mean": 0.0761,
+      "rollout_map_max": 1.0,
+      "gradcam_map_mean": 0.3399,
+      "gradcam_map_max": 1.0
+    },
+    {
+      "sample_index": 36,
+      "image_path": "COVID_19_dataset/test/COVID/COVID-1870.png",
+      "true_class": "COVID",
+      "predicted_class": "COVID",
+      "confidence": 0.9998,
+      "correct": true,
+      "rollout_map_mean": 0.0756,
+      "rollout_map_max": 1.0,
+      "gradcam_map_mean": 0.4346,
+      "gradcam_map_max": 1.0
+    }
+  ]
+}

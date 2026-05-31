@@ -1,0 +1,32 @@
+============================================================
+     TEST SET EVALUATION REPORT — DeiT-base
+============================================================
+
+  Model      : DeiT-base (deit_base_patch16_224)
+  Checkpoint : deit_best.pth
+  Evaluated  : 2026-05-31 11:39:49
+  Test set   : 435 images
+
+  Overall Accuracy : 0.9678  (96.78%)
+
+  Class                 Precision     Recall   F1-Score    Support
+  ------------------------------------------------------
+  COVID                    0.9474     0.9931     0.9697        145
+  Normal                   0.9781     0.9241     0.9504        145
+  Viral Pneumonia          0.9795     0.9862     0.9828        145
+  ------------------------------------------------------
+  Macro avg                0.9683     0.9678     0.9676        435
+  Weighted avg             0.9683     0.9678     0.9676        435
+============================================================
+
+Full Classification Report:
+
+                 precision    recall  f1-score   support
+
+          COVID     0.9474    0.9931    0.9697       145
+         Normal     0.9781    0.9241    0.9504       145
+Viral Pneumonia     0.9795    0.9862    0.9828       145
+
+       accuracy                         0.9678       435
+      macro avg     0.9683    0.9678    0.9676       435
+   weighted avg     0.9683    0.9678    0.9676       435
