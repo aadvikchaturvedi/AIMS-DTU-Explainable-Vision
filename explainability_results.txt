@@ -2,79 +2,109 @@
     EXPLAINABILITY RESULTS — DeiT-base COVID-19 Classifier
     Attention Rollout  vs  GradCAM
 ======================================================================
-  Generated : 2026-05-31 13:13:29
+  Generated : 2026-06-04 16:26:12
   Model     : deit_base_patch16_224
   Checkpoint: deit_best.pth
-  Samples   : 4  (2 per class)
+  Samples   : 6  (2 per class)
 
-  Prediction accuracy on these samples: 3/4 (75.0%)
+  Prediction accuracy on these samples: 3/6 (50.0%)
 
   ────────────────────────────────────────────────────────────────
-  Sample 01  [✓ CORRECT]
-    Image            : Viral Pneumonia-261.png
-    True class       : Viral Pneumonia
-    Predicted class  : Viral Pneumonia
-    Confidence       : 99.98%
+  Sample 01  [✗ WRONG]
+    Image            : Normal-4020.png
+    True class       : Normal
+    Predicted class  : COVID
+    Confidence       : 48.66%
 
     Attention Rollout heatmap stats:
-      Mean activation : 0.0244
+      Mean activation : 0.0285
       Max  activation : 1.0000
 
     GradCAM heatmap stats:
-      Mean activation : 0.5180
+      Mean activation : 0.1528
       Max  activation : 1.0000
 
   ────────────────────────────────────────────────────────────────
-  Sample 02  [✓ CORRECT]
-    Image            : Viral Pneumonia-494.png
+  Sample 02  [✗ WRONG]
+    Image            : Viral Pneumonia-173.png
     True class       : Viral Pneumonia
-    Predicted class  : Viral Pneumonia
-    Confidence       : 100.00%
+    Predicted class  : Normal
+    Confidence       : 40.08%
 
     Attention Rollout heatmap stats:
-      Mean activation : 0.0219
+      Mean activation : 0.0218
       Max  activation : 1.0000
 
     GradCAM heatmap stats:
-      Mean activation : 0.5209
+      Mean activation : 0.3065
       Max  activation : 1.0000
 
   ────────────────────────────────────────────────────────────────
   Sample 03  [✗ WRONG]
-    Image            : COVID-2160.png
+    Image            : COVID-2678.png
     True class       : COVID
     Predicted class  : Normal
-    Confidence       : 92.53%
+    Confidence       : 41.65%
 
     Attention Rollout heatmap stats:
-      Mean activation : 0.0761
+      Mean activation : 0.0311
       Max  activation : 1.0000
 
     GradCAM heatmap stats:
-      Mean activation : 0.3399
+      Mean activation : 0.1466
       Max  activation : 1.0000
 
   ────────────────────────────────────────────────────────────────
   Sample 04  [✓ CORRECT]
-    Image            : COVID-1870.png
-    True class       : COVID
-    Predicted class  : COVID
-    Confidence       : 99.98%
+    Image            : Normal-4329.png
+    True class       : Normal
+    Predicted class  : Normal
+    Confidence       : 45.35%
 
     Attention Rollout heatmap stats:
-      Mean activation : 0.0756
+      Mean activation : 0.0411
       Max  activation : 1.0000
 
     GradCAM heatmap stats:
-      Mean activation : 0.4346
+      Mean activation : 0.1354
+      Max  activation : 1.0000
+
+  ────────────────────────────────────────────────────────────────
+  Sample 05  [✓ CORRECT]
+    Image            : COVID-1870.png
+    True class       : COVID
+    Predicted class  : COVID
+    Confidence       : 47.13%
+
+    Attention Rollout heatmap stats:
+      Mean activation : 0.0479
+      Max  activation : 1.0000
+
+    GradCAM heatmap stats:
+      Mean activation : 0.1270
+      Max  activation : 1.0000
+
+  ────────────────────────────────────────────────────────────────
+  Sample 06  [✓ CORRECT]
+    Image            : COVID-393.png
+    True class       : COVID
+    Predicted class  : COVID
+    Confidence       : 53.46%
+
+    Attention Rollout heatmap stats:
+      Mean activation : 0.0259
+      Max  activation : 1.0000
+
+    GradCAM heatmap stats:
+      Mean activation : 0.1218
       Max  activation : 1.0000
 
   ────────────────────────────────────────────────────────────────
 
   Method Comparison Summary
   ────────────────────────────────────────────────────────────────
-  Method                    Avg Mean Activation   Avg Max Activation
-  ────────────────────────────────────────────────────────────────
-  Attention Rollout                      0.0495               1.0000
-  GradCAM                                0.4534               1.0000
-======================================================================
+  Method                   Avg Mean    Avg Max    Entropy    Del AUC    Ins AUC       AOPC
+  ─────────────────────────────────────────────────────────────────────────────────────
+  Attention Rollout          0.0327     1.0000    10.2065     0.4606     0.3533     0.0000
+  GradCAM                    0.1650     1.0000    10.2044     0.4606     0.4218     0.0000
+=====================================================================================

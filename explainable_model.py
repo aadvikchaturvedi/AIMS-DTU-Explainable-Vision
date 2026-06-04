@@ -25,6 +25,7 @@ from PIL import Image
 from pytorch_grad_cam import GradCAM
 from pytorch_grad_cam.utils.image import show_cam_on_image
 from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+from xai_evaluation import calculate_entropy, deletion_insertion_aopc
 
 # ── Config ────────────────────────────────────────────────────────────────────
 DATA_ROOT   = "COVID_19_dataset"
@@ -54,11 +55,15 @@ tensor_tf = transforms.Compose([
 ])
 
 # ── Load model ────────────────────────────────────────────────────────────────
-model = timm.create_model("deit_base_patch16_224", pretrained=False, num_classes=NUM_CLASSES)
-model.load_state_dict(torch.load(CKPT_PATH, map_location=DEVICE))
+model = timm.create_model("deit_base_patch16_224", pretrained=True, num_classes=NUM_CLASSES)
+if os.path.exists(CKPT_PATH):
+    model.load_state_dict(torch.load(CKPT_PATH, map_location=DEVICE))
+    print(f"Model loaded from {CKPT_PATH}.")
+else:
+    print(f"Warning: {CKPT_PATH} not found. Using default pretrained weights for verification.")
+
 model = model.to(DEVICE)
 model.eval()
-print("Model loaded.")
 
 # (Selection logic moved below predict helper)
 
@@ -163,6 +168,11 @@ cam = GradCAM(model=model, target_layers=target_layer,
 
 # collect per-image results for saving
 results = []
+# collect curves for plotting
+r_del_curves = []
+r_ins_curves = []
+g_del_curves = []
+g_ins_curves = []
 
 for row, idx in enumerate(selected):
     idx_int = int(idx)
@@ -218,6 +228,22 @@ for row, idx in enumerate(selected):
     overlay_g = show_cam_on_image(rgb, grayscale_cam_0, use_rgb=True)
     axes[row][2].imshow(overlay_g)
 
+    # ── Evaluation Metrics ────────────────────────────────────────────────────
+    print(f"  Evaluating Sample {row+1}/{len(selected)}...")
+    # Attention Rollout Metrics
+    r_metrics = deletion_insertion_aopc(model, tensor, rollout_map, DEVICE, target_class=pred)
+    r_entropy = calculate_entropy(rollout_map)
+    
+    # GradCAM Metrics
+    g_metrics = deletion_insertion_aopc(model, tensor, grayscale_cam_0, DEVICE, target_class=pred)
+    g_entropy = calculate_entropy(grayscale_cam_0)
+
+    # store curves
+    r_del_curves.append(r_metrics["deletion_curve"])
+    r_ins_curves.append(r_metrics["insertion_curve"])
+    g_del_curves.append(g_metrics["deletion_curve"])
+    g_ins_curves.append(g_metrics["insertion_curve"])
+
     # Remove axes but keep spines for Col 0 if we want the border visible
     for i, ax in enumerate(axes[row]):
         if i == 0:
@@ -238,6 +264,14 @@ for row, idx in enumerate(selected):
         "rollout_map_max"     : round(rollout_max,  4),
         "gradcam_map_mean"    : round(gradcam_mean, 4),
         "gradcam_map_max"     : round(gradcam_max,  4),
+        "rollout_entropy"     : round(float(r_entropy), 4),
+        "rollout_deletion"    : round(float(r_metrics["deletion_auc"]), 4),
+        "rollout_insertion"   : round(float(r_metrics["insertion_auc"]), 4),
+        "rollout_aopc"        : round(float(r_metrics["aopc"]), 4),
+        "gradcam_entropy"     : round(float(g_entropy), 4),
+        "gradcam_deletion"    : round(float(g_metrics["deletion_auc"]), 4),
+        "gradcam_insertion"   : round(float(g_metrics["insertion_auc"]), 4),
+        "gradcam_aopc"        : round(float(g_metrics["aopc"]), 4),
     })
 
 # Adjust subplots to make room for the labels on the left
@@ -258,7 +292,7 @@ plt.tight_layout()
 out_path = "explainability_comparison.png"
 plt.savefig(out_path, dpi=150, bbox_inches="tight")
 print(f"\nVisualization saved → {out_path}")
-plt.show()
+# plt.show()
 
 # ── Save results to CSV ───────────────────────────────────────────────────────
 csv_path = "explainability_results.csv"
@@ -266,7 +300,9 @@ fieldnames = [
     "sample_index", "image_path", "true_class", "predicted_class",
     "confidence", "correct",
     "rollout_map_mean", "rollout_map_max",
+    "rollout_entropy", "rollout_deletion", "rollout_insertion", "rollout_aopc",
     "gradcam_map_mean", "gradcam_map_max",
+    "gradcam_entropy", "gradcam_deletion", "gradcam_insertion", "gradcam_aopc",
 ]
 with open(csv_path, "w", newline="") as f:
     writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -308,15 +344,25 @@ with open(txt_path, "w") as f:
     f.write(f"  {'─'*64}\n\n")
     f.write("  Method Comparison Summary\n")
     f.write(f"  {'─'*64}\n")
-    f.write(f"  {'Method':<22} {'Avg Mean Activation':>22} {'Avg Max Activation':>20}\n")
-    f.write(f"  {'─'*64}\n")
+    f.write(f"  {'Method':<22} {'Avg Mean':>10} {'Avg Max':>10} {'Entropy':>10} {'Del AUC':>10} {'Ins AUC':>10} {'AOPC':>10}\n")
+    f.write(f"  {'─'*85}\n")
     avg_r_mean = sum(r["rollout_map_mean"] for r in results) / len(results)
     avg_r_max  = sum(r["rollout_map_max"]  for r in results) / len(results)
+    avg_r_ent  = sum(r["rollout_entropy"]  for r in results) / len(results)
+    avg_r_del  = sum(r["rollout_deletion"] for r in results) / len(results)
+    avg_r_ins  = sum(r["rollout_insertion"] for r in results) / len(results)
+    avg_r_aopc = sum(r["rollout_aopc"]      for r in results) / len(results)
+    
     avg_g_mean = sum(r["gradcam_map_mean"] for r in results) / len(results)
     avg_g_max  = sum(r["gradcam_map_max"]  for r in results) / len(results)
-    f.write(f"  {'Attention Rollout':<22} {avg_r_mean:>22.4f} {avg_r_max:>20.4f}\n")
-    f.write(f"  {'GradCAM':<22} {avg_g_mean:>22.4f} {avg_g_max:>20.4f}\n")
-    f.write("=" * 70 + "\n")
+    avg_g_ent  = sum(r["gradcam_entropy"]  for r in results) / len(results)
+    avg_g_del  = sum(r["gradcam_deletion"] for r in results) / len(results)
+    avg_g_ins  = sum(r["gradcam_insertion"] for r in results) / len(results)
+    avg_g_aopc = sum(r["gradcam_aopc"]      for r in results) / len(results)
+    
+    f.write(f"  {'Attention Rollout':<22} {avg_r_mean:>10.4f} {avg_r_max:>10.4f} {avg_r_ent:>10.4f} {avg_r_del:>10.4f} {avg_r_ins:>10.4f} {avg_r_aopc:>10.4f}\n")
+    f.write(f"  {'GradCAM':<22} {avg_g_mean:>10.4f} {avg_g_max:>10.4f} {avg_g_ent:>10.4f} {avg_g_del:>10.4f} {avg_g_ins:>10.4f} {avg_g_aopc:>10.4f}\n")
+    f.write("=" * 85 + "\n")
 print(f"TXT saved        → {txt_path}")
 
 # ── Save results to JSON ──────────────────────────────────────────────────────
@@ -332,10 +378,18 @@ json_out = {
         "attention_rollout": {
             "avg_mean_activation": round(avg_r_mean, 4),
             "avg_max_activation" : round(avg_r_max,  4),
+            "avg_entropy"        : round(avg_r_ent,  4),
+            "avg_deletion_auc"   : round(avg_r_del,  4),
+            "avg_insertion_auc"  : round(avg_r_ins,  4),
+            "avg_aopc"           : round(avg_r_aopc, 4),
         },
         "gradcam": {
             "avg_mean_activation": round(avg_g_mean, 4),
             "avg_max_activation" : round(avg_g_max,  4),
+            "avg_entropy"        : round(avg_g_ent,  4),
+            "avg_deletion_auc"   : round(avg_g_del,  4),
+            "avg_insertion_auc"  : round(avg_g_ins,  4),
+            "avg_aopc"           : round(avg_g_aopc, 4),
         },
     },
     "per_image_results": results,
@@ -344,8 +398,38 @@ with open(json_path, "w") as f:
     json.dump(json_out, f, indent=2)
 print(f"JSON saved       → {json_path}")
 
+# ── Plot Perturbation Curves ──────────────────────────────────────────────────
+plt.figure(figsize=(10, 5))
+steps_x = np.linspace(0, 100, len(r_del_curves[0]))
+
+# Average curves
+r_del_avg = np.mean(r_del_curves, axis=0)
+r_ins_avg = np.mean(r_ins_curves, axis=0)
+g_del_avg = np.mean(g_del_curves, axis=0)
+g_ins_avg = np.mean(g_ins_curves, axis=0)
+
+plt.subplot(1, 2, 1)
+plt.plot(steps_x, r_del_avg, label="Rollout Deletion", color="blue", linestyle="--")
+plt.plot(steps_x, g_del_avg, label="GradCAM Deletion", color="red", linestyle="--")
+plt.title("Deletion Curve (Lower AUC is Better)")
+plt.xlabel("% Pixels Removed"); plt.ylabel("Confidence")
+plt.legend(); plt.grid(True, alpha=0.3)
+
+plt.subplot(1, 2, 2)
+plt.plot(steps_x, r_ins_avg, label="Rollout Insertion", color="blue")
+plt.plot(steps_x, g_ins_avg, label="GradCAM Insertion", color="red")
+plt.title("Insertion Curve (Higher AUC is Better)")
+plt.xlabel("% Pixels Added"); plt.ylabel("Confidence")
+plt.legend(); plt.grid(True, alpha=0.3)
+
+plt.tight_layout()
+curve_path = "explainability_curves.png"
+plt.savefig(curve_path, dpi=150)
+print(f"Curves plot saved → {curve_path}")
+
 print("\nAll outputs:")
 print(f"  {out_path:<40} — side-by-side visualisation")
+print(f"  {curve_path:<40} — insertion/deletion curves")
 print(f"  {csv_path:<40} — per-image results (spreadsheet)")
 print(f"  {txt_path:<40} — human-readable report")
 print(f"  {json_path:<40} — structured data")
